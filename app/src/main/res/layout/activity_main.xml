@@ -7,6 +7,9 @@
     tools:context=".MainActivity">
 
     <ToggleButton
+        android:id="@+id/alarmToggle"
+        android:textOn="@string/alarm_on"
+        android:textOff="@string/alarm_off"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
