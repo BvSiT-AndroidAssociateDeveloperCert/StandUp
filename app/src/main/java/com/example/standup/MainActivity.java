@@ -86,17 +86,16 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
         registerReceiver(mReceiver, new IntentFilter(NOTIFICATION_ACTION));
-
     }
 
     private void deliverNotification(Context context) {
-        Intent contentIntent = new Intent(this,MainActivity.class);
+        Intent contentIntent = new Intent(context,MainActivity.class);
         PendingIntent contentPendingIntent = PendingIntent.getActivity(context,NOTIFICATION_ID,contentIntent,PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_standup)
-                .setContentTitle(getString(R.string.notification_content_title))
-                .setContentText(getString(R.string.notification_content_text))
+                .setContentTitle(context.getString(R.string.notification_content_title))
+                .setContentText(context.getString(R.string.notification_content_text))
                 .setContentIntent(contentPendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
@@ -133,6 +132,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("NotificationBroadcastReceiver", "onReceive: ");
+            if (mNotificationManager==null){
+                mNotificationManager =
+                        (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            }
+
             deliverNotification(context);
         }
     }
