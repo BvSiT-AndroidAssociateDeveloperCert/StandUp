@@ -1,5 +1,6 @@
 package com.example.standup;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -59,7 +60,12 @@ public class MainActivity extends AppCompatActivity {
             if(isChecked){
                 //Set the toast message for the "on" case.
                 toastMessage = "Stand Up Alarm On!";
-                deliverNotification(this);
+                Intent intent = new Intent(this,AlarmReceiver.class);
+                PendingIntent p = PendingIntent.getBroadcast(this,NOTIFICATION_ID,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+                final AlarmManager alarmManager = (AlarmManager) getSystemService
+                        (ALARM_SERVICE);
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),p);
             } else {
                 //Set the toast message for the "off" case.
                 toastMessage = "Stand Up Alarm Off!";
@@ -70,35 +76,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         createNotificationChannel();
-    }
-
-    private void setAlarm(boolean isChecked){
-        String toastMessage;
-        if(isChecked){
-            //Set the toast message for the "on" case.
-            toastMessage = "Stand Up Alarm On!";
-        } else {
-            //Set the toast message for the "off" case.
-            toastMessage = "Stand Up Alarm Off!";
-        }
-        //Show a toast to say the alarm is turned on or off.
-        Toast.makeText(MainActivity.this, toastMessage,Toast.LENGTH_SHORT)
-                .show();
-    }
-
-    private void deliverNotification(Context context) {
-        Intent contentIntent = new Intent(this,MainActivity.class);
-        PendingIntent contentPendingIntent = PendingIntent.getActivity(context,NOTIFICATION_ID,contentIntent,PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_standup)
-                .setContentTitle(getString(R.string.notification_content_title))
-                .setContentText(getString(R.string.notification_content_text))
-                .setContentIntent(contentPendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setDefaults(NotificationCompat.DEFAULT_ALL);
-        mNotificationManager.notify(NOTIFICATION_ID,builder.build());
     }
 
     private void createNotificationChannel() {
