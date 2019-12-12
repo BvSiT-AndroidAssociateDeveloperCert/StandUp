@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManager mNotificationManager;
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private static final int NOTIFICATION_ID = 0;
+    //private static final long NOTIFICATION_INTERVAL_MS=AlarmManager.INTERVAL_FIFTEEN_MINUTES;
+    private static final long NOTIFICATION_INTERVAL_MS=15000L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         toggleButton = findViewById(R.id.alarmToggle);
+
+        final AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        Intent notifyIntent = new Intent(this, AlarmReceiver.class);
+        final PendingIntent notifyPendingIntent = PendingIntent.getBroadcast
+                (this, NOTIFICATION_ID, notifyIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        boolean alarmUp = (PendingIntent.getBroadcast(this, NOTIFICATION_ID, notifyIntent,
+                PendingIntent.FLAG_NO_CREATE) != null);
+        toggleButton.setChecked(alarmUp);
+
 
         /* Common method to create a listener
         toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -60,15 +74,28 @@ public class MainActivity extends AppCompatActivity {
             if(isChecked){
                 //Set the toast message for the "on" case.
                 toastMessage = "Stand Up Alarm On!";
-                Intent intent = new Intent(this,AlarmReceiver.class);
-                PendingIntent p = PendingIntent.getBroadcast(this,NOTIFICATION_ID,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+                if (false){
+                    alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            SystemClock.elapsedRealtime(),
+                            NOTIFICATION_INTERVAL_MS,
+                            notifyPendingIntent);
+                }
 
-                final AlarmManager alarmManager = (AlarmManager) getSystemService
-                        (ALARM_SERVICE);
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),p);
+                alarmManager.setAlarmClock(
+                        new AlarmManager.AlarmClockInfo(System.currentTimeMillis()+NOTIFICATION_INTERVAL_MS, notifyPendingIntent)
+                        , notifyPendingIntent);
+
+                //alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),notifyPendingIntent);
+
+                //alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,System.currentTimeMillis(),notifyPendingIntent);
+
             } else {
                 //Set the toast message for the "off" case.
                 toastMessage = "Stand Up Alarm Off!";
+                mNotificationManager.cancelAll();
+                if (alarmManager != null) {
+                    alarmManager.cancel(notifyPendingIntent);
+                }
             }
             //Show a toast to say the alarm is turned on or off.
             Toast.makeText(MainActivity.this, toastMessage,Toast.LENGTH_SHORT)
